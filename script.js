@@ -1,178 +1,69 @@
-// API Configuration
 const API_KEY = 'e9e5f03cf6dd41878bbe38420be22d15';
-const API_URL = 'https://newsapi.org/v2';
-const CORS_PROXY = 'https://api.allorigins.win/raw?url=';
 
-// Global variables
-let currentCategory = 'general';
-let allArticles = [];
+document.addEventListener("DOMContentLoaded", () => {
+  const modal = document.getElementById("preferencesModal");
+  const form = document.getElementById("preferencesForm");
 
-// Initialize the app
-document.addEventListener('DOMContentLoaded', function() {
-    loadNews();
-    
-    // Add enter key support for search
-    document.getElementById('searchInput').addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchNews();
-        }
-    });
+  // Show modal if no preferences exist
+  if (!localStorage.getItem("userPreferences")) {
+    modal.style.display = "flex";
+  }
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    const country = document.getElementById("country").value;
+    const interestInputs = document.querySelectorAll("#interestOptions input:checked");
+    const interests = Array.from(interestInputs).map(input => input.value);
+
+    const preferences = { country, interests };
+    localStorage.setItem("userPreferences", JSON.stringify(preferences));
+    modal.style.display = "none";
+
+    fetchAndDisplayNews(preferences);
+  });
+
+  // Load saved preferences
+  const saved = localStorage.getItem("userPreferences");
+  if (saved) {
+    const prefs = JSON.parse(saved);
+    fetchAndDisplayNews(prefs);
+  }
 });
 
-// Load news function
-async function loadNews(category = 'general') {
-    showLoading();
-    hideError();
-    
-    try {
-        const encodedUrl = encodeURIComponent(`${API_URL}/top-headlines?country=us&category=${category}&apiKey=${API_KEY}`);
-        const response = await fetch(`${CORS_PROXY}${encodedUrl}`);
-        const data = await response.json();
-        
-        if (data.status === 'ok') {
-            allArticles = data.articles;
-            displayNews(allArticles);
-        } else {
-            throw new Error('Failed to fetch news');
+function fetchAndDisplayNews({ country, interests }) {
+  const container = document.getElementById("newsContainer");
+  container.innerHTML = ""; // Clear old news
+  const proxy = 'https://api.allorigins.win/raw?url=';
+
+  interests.forEach(category => {
+    const url = `${proxy}https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&apiKey=${API_KEY}`;
+
+    fetch(url)
+      .then(res => res.json())
+      .then(data => {
+        if (data.articles && data.articles.length > 0) {
+          displayArticles(data.articles);
         }
-        
-        hideLoading();
-    } catch (error) {
-        console.error('Error loading news:', error);
-        hideLoading();
-        showError();
-    }
+      })
+      .catch(err => {
+        console.error("Error fetching news:", err);
+      });
+  });
 }
 
-// Filter by category
-function filterByCategory(category) {
-    currentCategory = category;
-    
-    // Update active button
-    document.querySelectorAll('.category-btn').forEach(btn => {
-        btn.classList.remove('active');
-    });
-    event.target.classList.add('active');
-    
-    loadNews(category);
-}
+function displayArticles(articles) {
+  const container = document.getElementById("newsContainer");
 
-// Search news
-async function searchNews() {
-    const query = document.getElementById('searchInput').value.trim();
-    if (!query) {
-        loadNews(currentCategory);
-        return;
-    }
-    
-    showLoading();
-    hideError();
-    
-    try {
-        const encodedUrl = encodeURIComponent(`${API_URL}/everything?q=${encodeURIComponent(query)}&apiKey=${API_KEY}`);
-        const response = await fetch(`${CORS_PROXY}${encodedUrl}`);
-        const data = await response.json();
-        
-        if (data.status === 'ok') {
-            allArticles = data.articles;
-            displayNews(allArticles);
-        } else {
-            throw new Error('Failed to fetch news');
-        }
-        
-        hideLoading();
-    } catch (error) {
-        console.error('Error searching news:', error);
-        hideLoading();
-        showError();
-    }
-}
-
-// Display news
-function displayNews(articles) {
-    const newsGrid = document.getElementById('newsGrid');
-    const noResults = document.getElementById('noResults');
-    
-    if (articles.length === 0) {
-        newsGrid.innerHTML = '';
-        noResults.style.display = 'block';
-        return;
-    }
-    
-    noResults.style.display = 'none';
-    
-    newsGrid.innerHTML = articles.map(article => `
-        <div class="news-card" onclick="openModal('${encodeURIComponent(JSON.stringify(article))}')">
-            <div class="news-image-container">
-                <img class="news-image" src="${article.urlToImage || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop'}" 
-                     alt="${article.title}"
-                     onerror="this.src='https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=400&h=300&fit=crop'">
-            </div>
-            <div class="news-content">
-                <div class="news-category">${currentCategory}</div>
-                <h3 class="news-title">${article.title}</h3>
-                <p class="news-description">${article.description || 'No description available.'}</p>
-                <div class="news-meta">
-                    <span class="news-source">${article.source.name || 'Unknown Source'}</span>
-                    <span class="news-date">${formatDate(article.publishedAt)}</span>
-                </div>
-            </div>
-        </div>
-    `).join('');
-}
-
-// Open modal
-function openModal(articleData) {
-    const article = JSON.parse(decodeURIComponent(articleData));
-    
-    document.getElementById('modalImage').src = article.urlToImage || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&h=400&fit=crop';
-    document.getElementById('modalCategory').textContent = currentCategory;
-    document.getElementById('modalTitle').textContent = article.title;
-    document.getElementById('modalDescription').textContent = article.description || 'No description available.';
-    document.getElementById('modalSource').textContent = article.source.name || 'Unknown Source';
-    document.getElementById('modalDate').textContent = formatDate(article.publishedAt);
-    document.getElementById('modalLink').href = article.url || '#';
-    
-    document.getElementById('newsModal').style.display = 'block';
-}
-
-// Close modal
-function closeModal() {
-    document.getElementById('newsModal').style.display = 'none';
-}
-
-// Close modal when clicking outside
-window.onclick = function(event) {
-    const modal = document.getElementById('newsModal');
-    if (event.target === modal) {
-        modal.style.display = 'none';
-    }
-}
-
-// Utility functions
-function showLoading() {
-    document.getElementById('loading').style.display = 'flex';
-    document.getElementById('newsGrid').style.display = 'none';
-}
-
-function hideLoading() {
-    document.getElementById('loading').style.display = 'none';
-    document.getElementById('newsGrid').style.display = 'grid';
-}
-
-function showError() {
-    document.getElementById('errorMessage').style.display = 'block';
-}
-
-function hideError() {
-    document.getElementById('errorMessage').style.display = 'none';
-}
-
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        year: 'numeric'
-    });
+  articles.forEach(article => {
+    const card = document.createElement("div");
+    card.className = "news-card";
+    card.innerHTML = `
+      <img src="${article.urlToImage || 'https://via.placeholder.com/600x300'}" alt="News Image">
+      <h3>${article.title}</h3>
+      <p>${article.description || "No description available."}</p>
+      <a href="${article.url}" target="_blank">Read More</a>
+    `;
+    container.appendChild(card);
+  });
 }
