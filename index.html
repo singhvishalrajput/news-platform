@@ -9,6 +9,7 @@
 <body>
   <header>
     <h1>📰 NewsFlow</h1>
+    <button id="darkModeToggle" class="toggle-btn">🌙 Dark Mode</button>
   </header>
 
   <!-- Preferences Modal -->
@@ -29,4 +30,19 @@
           <label><input type="checkbox" value="technology" required> Technology</label><br>
           <label><input type="checkbox" value="sports"> Sports</label><br>
           <label><input type="checkbox" value="science"> Science</label><br>
-          <label><input type="checkbox" value="heal
+          <label><input type="checkbox" value="health"> Health</label><br>
+          <label><input type="checkbox" value="business"> Business</label><br>
+          <label><input type="checkbox" value="entertainment"> Entertainment</label><br>
+        </div>
+
+        <button type="submit">Save Preferences</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- News Container -->
+  <main id="newsContainer"></main>
+
+  <script src="script.js"></script>
+</body>
+</html>
