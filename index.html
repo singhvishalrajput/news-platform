@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NewsFlow - Stay Informed</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">NewsFlow</div>
+            <div class="search-container">
+                <div class="search-box">
+                    <input type="text" class="search-input" placeholder="Search news..." id="searchInput">
+                    <button class="search-btn" onclick="searchNews()">Search</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Category Filter -->
+        <div class="category-filter">
+            <button class="category-btn active" onclick="filterByCategory('general')">General</button>
+            <button class="category-btn" onclick="filterByCategory('business')">Business</button>
+            <button class="category-btn" onclick="filterByCategory('technology')">Technology</button>
+            <button class="category-btn" onclick="filterByCategory('health')">Health</button>
+            <button class="category-btn" onclick="filterByCategory('science')">Science</button>
+            <button class="category-btn" onclick="filterByCategory('sports')">Sports</button>
+            <button class="category-btn" onclick="filterByCategory('entertainment')">Entertainment</button>
+        </div>
+
+        <!-- Loading -->
+        <div class="loading" id="loading" style="display: none;">
+            <div class="spinner"></div>
+        </div>
+
+        <!-- Error Message -->
+        <div class="error-message" id="errorMessage" style="display: none;">
+            <h3>Oops! Something went wrong</h3>
+            <p>Unable to fetch news. Please try again later.</p>
+        </div>
+
+        <!-- News Grid -->
+        <div class="news-grid" id="newsGrid"></div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <h3>No articles found</h3>
+            <p>Try adjusting your search terms or category.</p>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="newsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <img id="modalImage" class="modal-image" src="" alt="">
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="modalCategory" class="news-category"></div>
+                <h2 id="modalTitle" class="modal-title"></h2>
+                <p id="modalDescription" class="modal-description"></p>
+                <div class="news-meta">
+                    <span id="modalSource" class="news-source"></span>
+                    <span id="modalDate" class="news-date"></span>
+                </div>
+                <br>
+                <a id="modalLink" href="#" target="_blank" class="modal-link">Read Full Article</a>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
